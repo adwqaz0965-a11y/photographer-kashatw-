@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Photographer Finance</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111827">
+  <style>
+    body { font-family: system-ui; margin:0; background:#0f172a; color:#fff }
+    header { padding:16px; background:#020617; text-align:center }
+    section { padding:16px }
+    input, button {
+      width:100%; padding:10px; margin:6px 0;
+      border-radius:8px; border:none;
+    }
+    button { background:#22c55e; font-weight:bold }
+    table { width:100%; border-collapse:collapse; margin-top:12px }
+    th, td { border-bottom:1px solid #334155; padding:6px; text-align:center }
+    canvas { background:#020617; margin-top:16px; border-radius:8px }
+    #lock { position:fixed; inset:0; background:#020617; display:flex; align-items:center; justify-content:center }
+  </style>
+</head>
+<body>
+
+<div id="lock">
+  <div>
+    <h2>🔐 ใส่ PIN</h2>
+    <input type="password" id="pinInput" placeholder="PIN 4 หลัก">
+    <button onclick="unlock()">เข้าแอป</button>
+  </div>
+</div>
+
+<header>
+  <h1>📸 Photographer Finance</h1>
+</header>
+
+<section>
+  <input id="job" placeholder="ชื่องาน">
+  <input id="deposit" type="number" placeholder="มัดจำ">
+  <input id="income" type="number" placeholder="รายได้ทั้งหมด">
+  <button onclick="addJob()">เพิ่มงาน</button>
+
+  <table>
+    <thead>
+      <tr><th>งาน</th><th>มัดจำ</th><th>รายได้</th></tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+
+  <canvas id="chart" width="300" height="150"></canvas>
+</section>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+
+const PIN = "1234";
+const lock = document.getElementById('lock');
+
+function unlock(){
+  if(document.getElementById('pinInput').value === PIN){
+    lock.style.display = 'none';
+  } else alert('PIN ผิด');
+}
+
+let data = JSON.parse(localStorage.getItem('jobs') || '[]');
+
+function addJob(){
+  data.push({
+    job: job.value,
+    deposit: +deposit.value,
+    income: +income.value
+  });
+  localStorage.setItem('jobs', JSON.stringify(data));
+  render();
+}
+
+function render(){
+  list.innerHTML = '';
+  let total = [];
+  data.forEach(d=>{
+    list.innerHTML += `<tr><td>${d.job}</td><td>${d.deposit}</td><td>${d.income}</td></tr>`;
+    total.push(d.income);
+  });
+  drawChart(total);
+}
+
+function drawChart(arr){
+  const c = chart.getContext('2d');
+  c.clearRect(0,0,300,150);
+  const max = Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    c.fillStyle = '#22c55e';
+    c.fillRect(i*40,150-(v/max*140),30,v/max*140);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
